@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_URI")
+}
+
+model User {
+  id                   String    @id @default(auto()) @map("_id") @db.ObjectId
+  firstName            String
+  lastName             String
+  email                String    @unique
+  matricNumber         String    @unique
+  password             String
+  isVerified           Boolean   @default(false)
+  verificationCode     String?
+  verificationExpires  DateTime?
+  walletAddress        String?
+  hasVoted             String[]  @db.ObjectId
+  role                 Role      @default(STUDENT)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  
+  createdElections     Election[] @relation("ElectionCreator")
+  votes                Vote[]
+  
+  @@map("users")
+}
+
+model Election {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  startDate   DateTime
+  endDate     DateTime
+  status      ElectionStatus @default(PENDING)
+  totalVotes  Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  createdBy   String      @db.ObjectId
+  creator     User        @relation("ElectionCreator", fields: [createdBy], references: [id])
+  candidates  Candidate[]
+  votes       Vote[]
+  
+  @@map("elections")
+}
+
+model Candidate {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  position   String
+  manifesto  String?
+  votes      Int    @default(0)
+  
+  electionId String    @db.ObjectId
+  election   Election  @relation(fields: [electionId], references: [id])
+  userVotes  Vote[]
+  
+  @@map("candidates")
+}
+
+model Vote {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  walletAddress   String?
+  transactionHash String?
+  votedAt         DateTime @default(now())
+  
+  userId      String    @db.ObjectId
+  user        User      @relation(fields: [userId], references: [id])
+  electionId  String    @db.ObjectId
+  election    Election  @relation(fields: [electionId], references: [id])
+  candidateId String    @db.ObjectId
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  
+  @@unique([userId, electionId])
+  @@map("votes")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum ElectionStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+}
