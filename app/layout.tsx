@@ -1,31 +1,20 @@
-import React from 'react';
-import { Metadata } from 'next';
+import type { Metadata } from 'next'
+import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Your App Name',
-  description: 'Your app description',
-};
-
-interface RootLayoutProps {
-  children: React.ReactNode;
+  title: 'voting app',
+  description: '',
+  generator: '',
 }
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
   return (
     <html lang="en">
-      <body>
-        <header>
-          <nav>
-            {/* Navigation content */}
-          </nav>
-        </header>
-        <main>
-          {children}
-        </main>
-        <footer>
-          {/* Footer content */}
-        </footer>
-      </body>
+      <body>{children}</body>
     </html>
-  );
+  )
 }
